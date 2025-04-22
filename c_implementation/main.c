@@ -3,6 +3,24 @@
 #include <string.h>
 #include "grid.h"
 
+
+void printGrid(Grid* grid) {
+    printf("grid ID: %d\n", grid->id);
+    printf("grid SIZE: %dx%d\n", grid->size, grid->size);
+    printf("grid REGION SIZE: %dx%d\n\n", grid->region_rows, grid->region_cols);
+
+    for (int i = 0; i < grid->size; i++) {
+        for (int j = 0; j < grid->size; j++) {
+            // Print each 4-tuple
+            for (int k = 0; k < 4; k++) {
+                printf("%c", grid->grid[i][j].comparisons[k]);
+            }
+            printf("  ");
+        }
+        printf("\n");
+    }
+}
+
 int destroyGrid(Grid* grid) {
     if (!grid) {
         perror("Erro ao iniciar grid object");
@@ -197,10 +215,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("grid ID: %d\n", grid->id);
-    printf("grid SIZE: %dx%d\n", grid->size, grid->size);
-    printf("grid REGION SIZE: %dx%d\n", grid->region_rows, grid->region_cols);
 
+
+    printGrid(grid);
     
     return 0;
 }
