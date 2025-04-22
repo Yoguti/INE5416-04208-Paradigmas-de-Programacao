@@ -42,11 +42,14 @@ Cada célula pode ter **símbolos ao redor**, mostrando comparações com as cé
 
 ---
 
-## 📌 Exemplo com N = 6 e regiões 3x2
+## 📌 Exemplo com N = 4 e regiões 2x2
 
-Mesmo que o Sudoku seja 6x6, ele **não usa blocos quadrados padrão**, mas sim **6 blocos retangulares de 3x2**.  
-Nesse caso, o campo `TIPO_REGIAO` deve indicar algo como `REGIAO_3X2`.
+#1
+SIZE:4 (represents 4x4)
+REGION_SIZE: 2x2
 
----
+>-->,--<>,<--<,--><,
+><--,-<<-,<>--,->>-,
+<--<,-->>,<--<,-->>,
+>>--,-<<-,>>--,-<<-,
 
-Se quiser, é possível adicionar uma representação da grade com os símbolos também.
