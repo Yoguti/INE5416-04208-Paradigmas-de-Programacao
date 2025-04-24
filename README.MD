@@ -11,8 +11,8 @@ Ele restringe os valores possíveis já na leitura do tabuleiro, propaga compara
 
 | Tópico | Arquivo |
 |--------|---------|
-| Detalhes passo-a-passo do algoritmo (filtragem, escolha da célula, retrocesso) | [algoritmos/comparison-sudoku-algo.MD](algoritmos/comparison-sudoku-algo.MD) |
-| Especificação do formato de arquivo usado para descrever o tabuleiro e os símbolos de comparação | [algoritmos/parsing-sudoku.md](algoritmos/parsing-sudoku.md) |
+| Detalhes passo-a-passo do algoritmo (filtragem, escolha da célula, retrocesso) | [Algoritmo Comparison-Sudoku](algoritmos/comparison-sudoku-algo.MD) |
+| Especificação do formato de arquivo usado para descrever o tabuleiro e os símbolos de comparação | [Formato de leitura](algoritmos/parsing-sudoku.md) |
 
 ---
 
