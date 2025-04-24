@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     while (!check) {
         printf("Select a grid sudoku_number: ");
         if (scanf("%d", &sudoku_number) != 1) {
-            while (getchar() != '\n'); // clean buffer
+            while (getchar() != '\n'); // limpa o buffer
             printf("Input inválido. Tente novamente: \n");
         } else {
             check = 1;
@@ -31,9 +31,9 @@ int main(int argc, char *argv[]) {
     int c;
     while ((c = fgetc(file)) != EOF) {
         if (c == '#') {
-            c = fgetc(file);  // get the number after #
+            c = fgetc(file);  // obtém o número após #
             if (c - '0' == sudoku_number) {
-                grid = parseGrid(file, c);  // we found our section, go parse it (continues at the same parsed point)
+                grid = parseGrid(file, c);  // encontramos nossa seção, vamos analisá-la (continua no mesmo ponto analisado)
                 break;
             }
         }
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     fclose(file);
     
     if (!grid) {
-        printf("Failed to parse grid.\n");
+        printf("Falha ao analisar o grid.\n");
         return EXIT_FAILURE;
     }
     
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
         printf("\nSolution Found:\n");
         printGrid(solution);
         
-        // Print the solution values in a more readable format
+        // Imprime os valores da solução em um formato mais legível
         printf("\nSolution Values:\n");
         for (int i = 0; i < solution->size; i++) {
             for (int j = 0; j < solution->size; j++) {
@@ -64,13 +64,13 @@ int main(int argc, char *argv[]) {
             printf("\n");
         }
         
-        // Free the solution grid first
+        // Libera o grid de solução primeiro
         destroyGrid(solution);
     } else {
         printf("\nNo solution found for this puzzle.\n");
     }
     
-    // Free the original grid
+    // Libera o grid original
     destroyGrid(grid);
     
     return 0;
