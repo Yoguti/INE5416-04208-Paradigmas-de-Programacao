@@ -1,4 +1,4 @@
-# Algoritmo Aprimorado de Sudoku com Comparações
+# Algoritmo Sudoku com Comparações
 
 ## Inicialização
 1. Calcule o intervalo `n = largura_região × altura_região` (por exemplo, 3×3 = 9).  

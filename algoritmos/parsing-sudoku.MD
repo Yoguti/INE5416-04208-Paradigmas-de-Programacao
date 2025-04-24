@@ -47,9 +47,9 @@ Cada célula pode ter **símbolos ao redor**, mostrando comparações com as cé
 #1
 SIZE:4 (represents 4x4)
 REGION_SIZE: 2x2
-'
+<pre> ```
 >-->,--<>,<--<,--><,
 ><--,-<<-,<>--,->>-,
 <--<,-->>,<--<,-->>,
 >>--,-<<-,>>--,-<<-,
-'
+``` </pre>
