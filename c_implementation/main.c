@@ -1,11 +1,12 @@
 #include "parsing.c"
-
+#include "solve.c"
 
 int main(int argc, char *argv[]) {
     Grid* grid;
 
     if (argc != 2) {
         printf("Erro. Uso: %s <sudoku_file> \n", argv[0]);
+        return EXIT_FAILURE;
     }
 
     FILE *file = fopen(argv[1], "r");
@@ -37,7 +38,31 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    
+    printf("Original Grid:\n");
     printGrid(grid);
+    
+    Grid* solution = solve(grid);
+    
+    if (solution) {
+        printf("\nSolution Found:\n");
+        printGrid(solution);
+        
+        // Print the solution values in a more readable format
+        printf("\nSolution Values:\n");
+        for (int i = 0; i < solution->size; i++) {
+            for (int j = 0; j < solution->size; j++) {
+                printf("%2d ", solution->grid[i][j].value);
+            }
+            printf("\n");
+        }
+        
+        destroyGrid(solution);
+    } else {
+        printf("\nNo solution found for this puzzle.\n");
+    }
+    
+    destroyGrid(grid);
     
     return 0;
 }
