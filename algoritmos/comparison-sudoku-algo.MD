@@ -1,39 +1,55 @@
-# Algoritmo Sudoku com Comparações
+# Algoritmo Simplificado de Sudoku com Comparações
 
 ## Inicialização
-1. Calcule o intervalo `n = largura_região × altura_região` (por exemplo, 3×3 = 9).  
-2. Crie uma grade vazia de tamanho `n × n`.  
-3. Para cada célula na grade, crie um **conjunto de possibilidades** contendo todos os valores de **1** até **n**.  
-4. Crie vetores de controle para **linhas**, **colunas** e **regiões** a fim de monitorar os valores já utilizados.  
+1. Identifique o tamanho do quebra-cabeça `n × n` (por exemplo, 9×9 para Sudoku padrão).
+2. Crie uma cópia da grade original para trabalhar sem modificar a entrada.
+3. Identifique as dimensões das regiões (por exemplo, 3×3 para Sudoku padrão).
+4. Prepare a estrutura para armazenar os símbolos de comparação entre células adjacentes (`<`, `>` ou `-`).
 
-## Pré‑processamento
-5. Para cada símbolo de comparação presente na grade:  
-   - Se a célula **A < B**, remova do conjunto de possibilidades de **A** todos os valores **≥** ao **maior valor possível** em **B**.  
-   - Se a célula **A > B**, remova do conjunto de possibilidades de **A** todos os valores **≤** ao **menor valor possível** em **B**.  
-6. Repita o passo 5 até que não ocorram mais reduções em nenhum conjunto de possibilidades.  
-
-## Loop Principal de Resolução
-7. Encontre a célula com o **menor** conjunto de possibilidades **não vazio**.  
-   - Se todas as células estiverem atribuídas (tamanho do conjunto = 1 para todas), vá para o passo 14.  
-8. Caso alguma célula tenha conjunto de possibilidades **vazio**, retroceda (vá para o passo 12).  
-9. Selecione o **primeiro valor** do conjunto de possibilidades da célula atual e atribua‑o à célula.  
-10. Atualize os vetores de controle da **linha**, **coluna** e **região** correspondentes.  
-11. Para cada célula afetada por essa atribuição (mesma linha, coluna, região ou ligada por símbolo de comparação):  
-    - Remova o valor atribuído de seus conjuntos de possibilidades.  
-    - Se a célula atribuída possuir símbolo **\<** com um vizinho, remova do vizinho todos os valores **≥** ao valor atribuído.  
-    - Se possuir símbolo **\>**, remova do vizinho todos os valores **≤** ao valor atribuído.  
-    - Se algum conjunto ficar vazio, vá para o passo 12 (retrocesso).  
-    - Se algum conjunto reduzir‑se a **um único valor**, considere‑o atribuído e repita o passo 11 para essa célula.  
-    - Se não ocorrer contradição, retorne ao passo 7 para processar a próxima célula.  
+## Processo de Resolução
+5. Procure uma célula vazia na grade.
+   - Se não houver células vazias, o quebra-cabeça está resolvido. Vá para o passo 10.
+6. Para cada valor possível de **1** até **n**:
+   - Verifique se o valor respeita as regras básicas do Sudoku:
+     - O valor não pode se repetir na mesma linha.
+     - O valor não pode se repetir na mesma coluna.
+     - O valor não pode se repetir na mesma região.
+   - Verifique se o valor respeita as restrições de comparação:
+     - Se a célula atual tem símbolo **<** com a célula à direita, o valor deve ser menor que o valor da célula à direita (se já preenchida).
+     - Se a célula atual tem símbolo **>** com a célula à direita, o valor deve ser maior que o valor da célula à direita (se já preenchida).
+     - Verifique as mesmas condições para as células à esquerda, acima e abaixo.
+   - Se o valor for válido, coloque-o na célula vazia e continue para o próximo passo.
+   - Se nenhum valor for válido, vá para o passo 8 (retrocesso).
+7. Avance recursivamente para a próxima célula vazia (volte ao passo 5).
+   - Se a recursão retornar sucesso, mantenha o valor e continue.
+   - Se a recursão retornar falha, tente o próximo valor possível.
 
 ## Retrocesso (Backtracking)
-12. Desfaça a atribuição atual da célula e **restaure** todos os conjuntos de possibilidades ao estado anterior.  
-13. Se o conjunto da célula ainda possuir valores não tentados:  
-    - Remova o último valor testado do conjunto.  
-    - Retorne ao passo 9 para tentar o próximo valor.  
-    - Caso não restem valores no conjunto, retroceda para a célula atribuída anterior (repita o passo 12).  
-    - Se não houver célula anterior para retroceder, o quebra‑cabeça **não possui solução**. Saia.  
+8. Se nenhum valor válido for encontrado para a célula atual, ou se a recursão falhar para todos os valores:
+   - Limpe a célula atual (defina seu valor como 0).
+   - Retorne à célula anterior (retroceda).
+9. Se todas as possibilidades foram esgotadas e não foi possível encontrar uma solução, o quebra-cabeça não tem solução.
 
 ## Encerramento
-14. Verifique se a solução satisfaz **todas** as restrições de Sudoku e os relacionamentos de comparação.  
-15. Devolva a grade completa como solução.  
+10. Verifique se a solução encontrada satisfaz todas as restrições do Sudoku e os símbolos de comparação.
+11. Retorne a grade preenchida como solução.
+
+## Explicação em Linguagem Comum
+
+Este algoritmo resolve o Sudoku com comparações usando uma abordagem de "tentativa e erro" sistemática chamada backtracking (retrocesso). Funciona assim:
+
+1. **Encontre um espaço vazio**: O algoritmo procura uma célula vazia no quebra-cabeça.
+
+2. **Tente um número**: Para cada célula vazia, o algoritmo tenta colocar um número de 1 até n.
+
+3. **Verifique se o número é válido**: Antes de confirmar o número, o algoritmo verifica:
+   - Se o número já existe na mesma linha, coluna ou região (regras básicas do Sudoku).
+   - Se o número respeita os símbolos de comparação (`<` ou `>`) com as células vizinhas.
+
+4. **Avance ou retroceda**:
+   - Se o número for válido, o algoritmo avança para a próxima célula vazia.
+   - Se nenhum número for válido, ou se uma escolha anterior levou a um beco sem saída, o algoritmo "desfaz" a última escolha e tenta outro número.
+
+5. **Repita até resolver**: O processo continua até que todas as células estejam preenchidas corretamente ou até que se determine que não há solução.
+
+A beleza deste método é sua simplicidade. Ele não requer estruturas de dados complexas ou pré-processamento elaborado. O algoritmo simplesmente tenta valores, verifica se funcionam, e muda de direção quando necessário até encontrar a solução.
