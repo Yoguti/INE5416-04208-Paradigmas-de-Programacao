@@ -39,6 +39,13 @@ int main(int argc, char *argv[]) {
         }
     }
     
+    fclose(file);
+    
+    if (!grid) {
+        printf("Failed to parse grid.\n");
+        return EXIT_FAILURE;
+    }
+    
     printf("Original Grid:\n");
     printGrid(grid);
     
@@ -57,11 +64,13 @@ int main(int argc, char *argv[]) {
             printf("\n");
         }
         
+        // Free the solution grid first
         destroyGrid(solution);
     } else {
         printf("\nNo solution found for this puzzle.\n");
     }
     
+    // Free the original grid
     destroyGrid(grid);
     
     return 0;
