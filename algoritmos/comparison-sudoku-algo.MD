@@ -1,7 +1,7 @@
 # Algoritmo Simplificado de Sudoku com Comparações
 
 ## Inicialização
-1. Identifique o tamanho do quebra-cabeça `n × n` (por exemplo, 9×9 para Sudoku padrão).
+1. Identifique o tamanho do quebra-cabeça `n × m` (por exemplo, 9×9 para Sudoku padrão).
 2. Crie uma cópia da grade original para trabalhar sem modificar a entrada.
 3. Identifique as dimensões das regiões (por exemplo, 3×3 para Sudoku padrão).
 4. Prepare a estrutura para armazenar os símbolos de comparação entre células adjacentes (`<`, `>` ou `-`).
