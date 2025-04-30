@@ -1,0 +1,11 @@
+function solve(grid):
+    for each cell in grid:
+        if cell is empty:
+            for each possible value:
+                place value in cell
+                if value is valid:
+                    if solve(grid) == true:
+                        return true
+                undo the value (backtrack)
+            return false  // no valid value found
+    return true  // all cells filled correctly
