@@ -1,4 +1,15 @@
-`module Grid (Grid(..)) where
+module Grid (
+    Grid(..),
+    createGrid,
+    isValidRow,
+    isValidColumn,
+    isValidRegions,
+    setCell,
+    getCell,
+    getNeighbors,
+    compareCardinals
+) where
+
 
 import Cell
 import Data.List (transpose, nub)
@@ -99,4 +110,3 @@ checkComparison cell grid comp (nRow, nCol) =
         (_, Nothing) -> True  -- No neighbor in this direction, so no constraint
         (Greater, Just neighbor) -> value cell > value neighbor
         (Less, Just neighbor) -> value cell < value neighbor
-        _ -> False  -- Should not happen

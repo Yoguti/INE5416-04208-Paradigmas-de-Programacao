@@ -2,13 +2,16 @@ module Cell (
     Comparison(..),
     Cell(..),
     createCell,
+    getValue,
+    setValue,
     getComparison,
     setComparison
 ) where
 
+
 -- Define possible comparisons: Less, Greater, or None
 data Comparison = Less | Greater | None
-    deriving (Show, Eq)
+    deriving (Show, Eq, Ord)
 
 -- Define the Cell type: Int value and 4 comparisons (right, top, left, down)
 data Cell = Cell
