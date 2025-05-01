@@ -15,7 +15,7 @@ import Cell
 import Data.List (transpose, nub)
 
 
--- Definine Grid 
+-- Define Grid 
 data Grid = Grid
     { size :: Int
     , regionSize :: (Int, Int)
@@ -34,8 +34,8 @@ createGrid size regionSize = Grid size regionSize gridCells
 
 isValidRow :: [Cell] -> Bool
 isValidRow cells = 
-    let values = filter (/= 0) $ map value cells -- filter invalid cell values and map them to a list of values
-    in length values /= length (nub values) -- compare if the lenght of values is != from the lenght of values - repeated values (nub)
+    let values = filter (/= 0) $ map getValue cells -- Use getValue accessor instead of direct pattern matching
+    in length values == length (nub values) -- FIXED: Check if all values are unique (no duplicates)
 
 
 -- Transpose the grid and reuse isValidRow on each column
@@ -59,9 +59,8 @@ isValidRegions grid (rH, rW) =
 
     -- Check if region has no duplicate non-zero values
     isValidRegion region =
-        let values = filter (/= 0) $ map value region
-        in length values == length (nub values)
-
+        let values = filter (/= 0) $ map getValue region -- Use getValue accessor
+        in length values == length (nub values) -- FIXED: Check if all values are unique
 
 
 -- Helper funcs
@@ -84,14 +83,15 @@ getCell grid row col =
   else Nothing
 
 -- Get neighbors (top, right, bottom, left) of a given cell
-getNeighbors :: [[Cell]] -> Int -> Int -> [Cell]
+-- FIXED: Order of neighbors to match comparison order in cells
+getNeighbors :: [[Cell]] -> Int -> Int -> [Maybe Cell]
 getNeighbors grid row col =
-  let positions = [ (row - 1, col)    -- top
-                  , (row, col + 1)    -- right
-                  , (row + 1, col)    -- bottom
-                  , (row, col - 1)    -- left
+  let positions = [ (row, col + 1)    -- right (0)
+                  , (row - 1, col)    -- top (1)
+                  , (row, col - 1)    -- left (2)
+                  , (row + 1, col)    -- bottom (3)
                   ]
-  in [ cell | (r, c) <- positions, Just cell <- [getCell grid r c] ]
+  in [ getCell grid r c | (r, c) <- positions ]
 
 
 -- Check if a cell's comparisons match its actual relationships with neighbors
@@ -100,16 +100,104 @@ compareCardinals grid row col =
     case getCell (cells grid) row col of
         Nothing -> False  -- Cell doesn't exist
         Just cell -> 
-            let (right, top, left, down) = comparisons cell
-                neighbors = [(row, col+1), (row-1, col), (row, col-1), (row+1, col)]
-                comparisons' = [right, top, left, down]
-            in all id $ zipWith (checkComparison cell (cells grid)) comparisons' neighbors
-
--- Helper function to check a single comparison
-checkComparison :: Cell -> [[Cell]] -> Comparison -> (Int, Int) -> Bool
-checkComparison cell grid comp (nRow, nCol) =
-    case (comp, getCell grid nRow nCol) of
+            let cellValue = getValue cell
+                (right, top, left, down) = comparisons cell
+                n = size grid
+            in
+                -- Check right comparison
+                (col >= n - 1 || right == None || 
+                    case getCell (cells grid) row (col + 1) of
+                        Nothing -> True
+                        Just rightCell -> 
+                            let rightValue = getValue rightCell
+                            in rightValue == 0 || 
+                               (right == Greater && cellValue > rightValue) ||
+                               (right == Less && cellValue < rightValue)) &&
+                
+                -- Check top comparison
+                (row <= 0 || top == None || 
+                    case getCell (cells grid) (row - 1) col of
+                        Nothing -> True
+                        Just topCell -> 
+                            let topValue = getValue topCell
+                            in topValue == 0 ||
+                               (top == Greater && cellValue > topValue) ||
+                               (top == Less && cellValue < topValue)) &&
+                
+                -- Check left comparison
+                (col <= 0 || left == None || 
+                    case getCell (cells grid) row (col - 1) of
+                        Nothing -> True
+                        Just leftCell -> 
+                            let leftValue = getValue leftCell
+                            in leftValue == 0 ||
+                               (left == Greater && cellValue > leftValue) ||
+                               (left == Less && cellValue < leftValue)) &&
+                
+                -- Check down comparison
+                (row >= n - 1 || down == None || 
+                    case getCell (cells grid) (row + 1) col of
+                        Nothing -> True
+                        Just downCell -> 
+                            let downValue = getValue downCell
+                            in downValue == 0 ||
+                               (down == Greater && cellValue > downValue) ||
+                               (down == Less && cellValue < downValue)) &&
+                
+                -- Additional checks for neighboring cells' constraints pointing to this cell
+                -- Check if left neighbor has right comparison pointing to this cell
+                (col <= 0 || 
+                    case getCell (cells grid) row (col - 1) of
+                        Nothing -> True
+                        Just leftCell ->
+                            let leftValue = getValue leftCell
+                                (leftRight, _, _, _) = comparisons leftCell
+                            in leftValue == 0 || leftRight == None ||
+                               (leftRight == Greater && leftValue > cellValue) ||
+                               (leftRight == Less && leftValue < cellValue)) &&
+                
+                -- Check if top neighbor has down comparison pointing to this cell
+                (row <= 0 || 
+                    case getCell (cells grid) (row - 1) col of
+                        Nothing -> True
+                        Just topCell ->
+                            let topValue = getValue topCell
+                                (_, _, _, topDown) = comparisons topCell
+                            in topValue == 0 || topDown == None ||
+                               (topDown == Greater && topValue > cellValue) ||
+                               (topDown == Less && topValue < cellValue)) &&
+                
+                -- Check if right neighbor has left comparison pointing to this cell  
+                (col >= n - 1 || 
+                    case getCell (cells grid) row (col + 1) of
+                        Nothing -> True
+                        Just rightCell ->
+                            let rightValue = getValue rightCell
+                                (_, _, rightLeft, _) = comparisons rightCell
+                            in rightValue == 0 || rightLeft == None ||
+                               (rightLeft == Greater && rightValue > cellValue) ||
+                               (rightLeft == Less && rightValue < cellValue)) &&
+                
+                -- Check if bottom neighbor has top comparison pointing to this cell
+                (row >= n - 1 || 
+                    case getCell (cells grid) (row + 1) col of
+                        Nothing -> True
+                        Just downCell ->
+                            let downValue = getValue downCell
+                                (_, downTop, _, _) = comparisons downCell
+                            in downValue == 0 || downTop == None ||
+                               (downTop == Greater && downValue > cellValue) ||
+                               (downTop == Less && downValue < cellValue))
+                               
+-- Simplified helper function to check a single comparison with a neighbor
+checkNeighbor :: Int -> Comparison -> Maybe Cell -> Bool
+checkNeighbor cellValue comp maybeNeighbor =
+    case (comp, maybeNeighbor) of
         (None, _) -> True  -- No comparison needed
-        (_, Nothing) -> True  -- No neighbor in this direction, so no constraint
-        (Greater, Just neighbor) -> value cell > value neighbor
-        (Less, Just neighbor) -> value cell < value neighbor
+        (_, Nothing) -> True  -- No neighbor in this direction, so constraint is satisfied
+        (Greater, Just neighbor) -> 
+            let neighborValue = getValue neighbor
+            in neighborValue == 0 || cellValue > neighborValue  -- Allow empty cells
+        (Less, Just neighbor) -> 
+            let neighborValue = getValue neighbor
+            in neighborValue == 0 || cellValue < neighborValue  -- Allow empty cells

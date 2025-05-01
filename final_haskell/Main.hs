@@ -39,7 +39,7 @@ main = do
                             printGrid grid
                             
                             -- Solve the grid
-                            case solve grid of
+                            case futoshiki grid of
                                 Nothing -> putStrLn "\nNo solution found for this puzzle."
                                 Just solution -> do
                                     putStrLn "\nSolution Found:"

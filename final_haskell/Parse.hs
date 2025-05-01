@@ -81,10 +81,13 @@ parseRows :: [String] -> Int -> [[Cell]]
 parseRows lines size = map (parseRow size) lines
 
 -- Parse a single row of cells
+-- FIXED: Properly split by commas as defined in the file format
 parseRow :: Int -> String -> [Cell]
 parseRow size line = 
-    let tokens = take size $ splitOn "," line
-    in map parseCell tokens
+    let tokens = splitOn "," (filter (/= ' ') line)
+        -- Make sure we have enough tokens for the size
+        validTokens = take size tokens
+    in map parseCell validTokens
 
 -- Parse a single cell
 parseCell :: String -> Cell
