@@ -65,6 +65,9 @@ isValidRegions grid (rH, rW) =
 
 
 -- Helper funcs
+getIntBoundry :: Grid -> Int
+getIntBoundry (Grid _ (a, b) _) = a * b
+
 -- Set the value of a specific cell in the grid
 setCell :: [[Cell]] -> Int -> Int -> Cell -> [[Cell]]
 setCell grid row col newCellValue =
