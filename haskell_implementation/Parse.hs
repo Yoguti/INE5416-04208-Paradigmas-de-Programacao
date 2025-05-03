@@ -9,26 +9,26 @@ import Data.Maybe (fromMaybe)
 import Cell
 import Grid
 
--- Parse a grid from file content and grid number
+-- Faz o parsing (análise) de uma grade a partir do conteúdo de um arquivo e o número da grade
 parseGrid :: String -> Int -> Maybe Grid
 parseGrid content gridNum = do
-    -- Find the section for the requested grid number
+    -- Encontra a seção referente ao número da grade solicitado
     let sections = splitOn ("#" ++ show gridNum) content
     if length sections <= 1
         then Nothing
         else do
             let gridSection = sections !! 1
-            -- Extract size
+            -- Extrai o tamanho da grade
             size <- extractSize gridSection
-            -- Extract region size
+            -- Extrai o tamanho da região
             (regionRows, regionCols) <- extractRegionSize gridSection
-            -- Extract cell data
+            -- Extrai os dados das células
             cellData <- extractCellData gridSection size
             
-            -- Create the grid
+            -- Cria e retorna a grade
             return $ Grid size (regionRows, regionCols) cellData
 
--- Extract grid size from text
+-- Extrai o tamanho da grade a partir do texto
 extractSize :: String -> Maybe Int
 extractSize content = do
     let sizeLine = filter (isPrefixOf "SIZE:") (lines content)
@@ -39,7 +39,7 @@ extractSize content = do
             let sizeStr = drop 5 sizeText  -- Remove "SIZE:"
             return (read (takeWhile (/= 'X') sizeStr) :: Int)
 
--- Extract region size from text
+-- Extrai o tamanho da região a partir do texto
 extractRegionSize :: String -> Maybe (Int, Int)
 extractRegionSize content = do
     let regionLine = filter (isPrefixOf "REGION_SIZE:") (lines content)
@@ -52,7 +52,7 @@ extractRegionSize content = do
                 then Nothing
                 else return (read (regionParts !! 0), read (regionParts !! 1))
 
--- Extract cell data from text
+-- Extrai os dados das células a partir do texto
 extractCellData :: String -> Int -> Maybe [[Cell]]
 extractCellData content size = do
     let contentLines = lines content
@@ -67,7 +67,7 @@ extractCellData content size = do
                 else Just (parseRows dataLines size)
         _ -> Nothing
 
--- Find index of a line with prefix
+-- Encontra o índice de uma linha com determinado prefixo
 findIndex :: String -> [String] -> Maybe Int
 findIndex prefix list = findIndexHelper prefix list 0
   where
@@ -76,50 +76,50 @@ findIndex prefix list = findIndexHelper prefix list 0
         | isPrefixOf p x = Just idx
         | otherwise = findIndexHelper p xs (idx + 1)
 
--- Parse all rows
+-- Faz o parsing de todas as linhas da grade
 parseRows :: [String] -> Int -> [[Cell]]
 parseRows lines size = map (parseRow size) lines
 
--- Parse a single row of cells
--- FIXED: Properly split by commas as defined in the file format
+-- Faz o parsing de uma única linha de células
+-- CORRIGIDO: Divide corretamente por vírgulas, como definido no formato do arquivo
 parseRow :: Int -> String -> [Cell]
 parseRow size line = 
     let tokens = splitOn "," (filter (/= ' ') line)
-        -- Make sure we have enough tokens for the size
+        -- Garante que temos tokens suficientes para o tamanho esperado
         validTokens = take size tokens
     in map parseCell validTokens
 
--- Parse a single cell
+-- Faz o parsing de uma única célula
 parseCell :: String -> Cell
 parseCell token =
     let right = charToComparison (safeIndex token 0)
         top = charToComparison (safeIndex token 1)
         left = charToComparison (safeIndex token 2)
         down = charToComparison (safeIndex token 3)
-    in createCell (right, top, left, down) 0  -- Initialize with value 0
+    in createCell (right, top, left, down) 0  -- Inicializa com valor 0
 
--- Safely access a character in a string
+-- Acessa com segurança um caractere em uma string
 safeIndex :: String -> Int -> Char
 safeIndex s i = if i < length s then s !! i else '-'
 
--- Convert character to Comparison
+-- Converte um caractere em um tipo de comparação
 charToComparison :: Char -> Comparison
 charToComparison '>' = Greater
 charToComparison '<' = Less
 charToComparison _ = None
 
--- Print a grid to console
+-- Imprime a grade no console
 printGrid :: Grid -> IO ()
 printGrid grid = do
     putStrLn $ "Grid SIZE: " ++ show (size grid) ++ "x" ++ show (size grid)
     let (regionRows, regionCols) = regionSize grid
     putStrLn $ "Grid REGION SIZE: " ++ show regionRows ++ "x" ++ show regionCols ++ "\n"
     
-    -- Print each row of cells
+    -- Imprime cada linha de células
     mapM_ printRow (cells grid)
   where
     printRow row = do
-        -- Print each cell in the row
+        -- Imprime cada célula da linha
         mapM_ printCell row
         putStrLn ""
     

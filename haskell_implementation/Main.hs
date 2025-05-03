@@ -12,44 +12,45 @@ main :: IO ()
 main = do
     args <- getArgs
     
-    -- Check if filename was provided
+    -- Verifica se o nome do arquivo foi fornecido
     if length args /= 1
-        then putStrLn "Error. Usage: ./main <sudoku_file>"
+        then putStrLn "Erro. Uso: ./main <arquivo_sudoku>"
         else do
             let filename = head args
             fileExists <- doesFileExist filename
             
+            -- Verifica se o arquivo existe
             if not fileExists
-                then putStrLn "Error opening file"
+                then putStrLn "Erro ao abrir o arquivo"
                 else do
-                    -- Read file content
+                    -- Lê o conteúdo do arquivo
                     content <- readFile filename
                     
-                    -- Ask user for grid number
-                    putStrLn "Select a grid sudoku_number: "
+                    -- Pergunta ao usuário qual número de grade deseja
+                    putStrLn "Selecione um número de grade sudoku: "
                     input <- getLine
                     let gridNum = read input :: Int
                     
-                    -- Parse the grid
+                    -- Faz o parsing da grade
                     case parseGrid content gridNum of
-                        Nothing -> putStrLn "Failed to parse the grid."
+                        Nothing -> putStrLn "Falha ao analisar a grade."
                         Just grid -> do
-                            -- Print original grid
-                            putStrLn "Original Grid:"
+                            -- Imprime a grade original
+                            putStrLn "Grade Original:"
                             printGrid grid
                             
-                            -- Solve the grid
+                            -- Resolve a grade
                             case futoshiki grid of
-                                Nothing -> putStrLn "\nNo solution found for this puzzle."
+                                Nothing -> putStrLn "\nNenhuma solução encontrada para este quebra-cabeça."
                                 Just solution -> do
-                                    putStrLn "\nSolution Found:"
+                                    putStrLn "\nSolução Encontrada:"
                                     printGrid solution
                                     
-                                    -- Print solution values in readable format
-                                    putStrLn "\nSolution Values:"
+                                    -- Imprime os valores da solução de forma legível
+                                    putStrLn "\nValores da Solução:"
                                     printSolutionValues solution
 
--- Helper function to check if a file exists
+-- Função auxiliar para verificar se o arquivo existe
 doesFileExist :: FilePath -> IO Bool
 doesFileExist path = do
     result <- try (openFile path ReadMode) :: IO (Either IOError Handle)
@@ -59,16 +60,16 @@ doesFileExist path = do
             hClose handle
             return True
 
--- Helper function to print solution values in a readable format
+-- Função auxiliar para imprimir os valores da solução de forma legível
 printSolutionValues :: Grid -> IO ()
 printSolutionValues grid = do
     let gridSize = size grid
     let gridCells = cells grid
     
-    -- Print each row
+    -- Imprime cada linha
     mapM_ printRow gridCells
   where
     printRow row = do
-        -- Print each cell value in the row
+        -- Imprime o valor de cada célula na linha
         mapM_ (\cell -> putStr $ show (value cell) ++ " ") row
         putStrLn ""

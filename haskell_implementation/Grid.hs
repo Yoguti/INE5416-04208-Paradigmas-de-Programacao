@@ -10,39 +10,36 @@ module Grid (
     compareCardinals
 ) where
 
-
 import Cell
 import Data.List (transpose, nub)
 
-
--- Define Grid 
+-- Define o tipo Grid
 data Grid = Grid
-    { size :: Int
-    , regionSize :: (Int, Int)
-    , cells :: [[Cell]]
+    { size :: Int               -- Tamanho da grade (NxN)
+    , regionSize :: (Int, Int)  -- Tamanho das regiões (altura, largura)
+    , cells :: [[Cell]]         -- Matriz de células
     }
     deriving (Show, Eq)
 
-
+-- Cria uma nova grade vazia
 createGrid :: Int -> (Int, Int) -> Grid
 createGrid size regionSize = Grid size regionSize gridCells
   where
     emptyCell = createCell (None, None, None, None) 0
-    -- replicate :: Int -> a -> [a]
+    -- replicate :: Int -> a -> [a], cria linhas e colunas preenchidas com células vazias
     gridCells = replicate size (replicate size emptyCell)
- 
 
+-- Verifica se os valores da linha são únicos (sem duplicatas e diferentes de 0)
 isValidRow :: [Cell] -> Bool
 isValidRow cells = 
-    let values = filter (/= 0) $ map getValue cells -- Use getValue accessor instead of direct pattern matching
-    in length values == length (nub values) -- FIXED: Check if all values are unique (no duplicates)
+    let values = filter (/= 0) $ map getValue cells -- Pega apenas os valores diferentes de 0
+    in length values == length (nub values) -- Confere se não há duplicatas
 
-
--- Transpose the grid and reuse isValidRow on each column
+-- Transpõe a grade e reutiliza isValidRow para verificar colunas
 isValidColumn :: [[Cell]] -> [Bool]
 isValidColumn grid = map isValidRow (transpose grid)
 
--- Break grid into regions and checks each region for uniqueness
+-- Divide a grade em regiões e verifica se cada uma tem valores únicos
 isValidRegions :: [[Cell]] -> (Int, Int) -> [Bool]
 isValidRegions grid (rH, rW) = 
     [ isValidRegion (getRegion y x) 
@@ -50,31 +47,30 @@ isValidRegions grid (rH, rW) =
     , x <- [0, rW .. length (head grid) - 1]
     ]
   where
-    -- Extract a region starting at (startY, startX)
+    -- Extrai uma região a partir da posição (startY, startX)
     getRegion startY startX =
         [ grid !! y !! x
         | y <- [startY .. startY + rH - 1]
         , x <- [startX .. startX + rW - 1]
         ]
 
-    -- Check if region has no duplicate non-zero values
+    -- Verifica se a região não possui valores duplicados (exceto 0)
     isValidRegion region =
-        let values = filter (/= 0) $ map getValue region -- Use getValue accessor
-        in length values == length (nub values) -- FIXED: Check if all values are unique
+        let values = filter (/= 0) $ map getValue region
+        in length values == length (nub values)
 
-
--- Helper funcs
+-- Retorna o número total de células da grade
 getIntBoundry :: Grid -> Int
 getIntBoundry (Grid _ (a, b) _) = a * b
 
--- Set the value of a specific cell in the grid
+-- Define o valor de uma célula específica na grade
 setCell :: [[Cell]] -> Int -> Int -> Cell -> [[Cell]]
 setCell grid row col newCellValue =
     if row >= 0 && row < length grid && col >= 0 && col < length (head grid)
     then take row grid ++ [take col (grid !! row) ++ [newCellValue] ++ drop (col + 1) (grid !! row)] ++ drop (row + 1) grid
-    else grid  -- Return the grid unchanged if the position is out of bounds
+    else grid  -- Retorna a grade original se os índices estiverem fora do intervalo
 
--- Safe access to a cell
+-- Acesso seguro a uma célula
 getCell :: [[Cell]] -> Int -> Int -> Maybe Cell
 getCell grid row col =
   if row >= 0 && row < length grid &&
@@ -82,29 +78,28 @@ getCell grid row col =
   then Just (grid !! row !! col)
   else Nothing
 
--- Get neighbors (top, right, bottom, left) of a given cell
--- FIXED: Order of neighbors to match comparison order in cells
+-- Retorna os vizinhos (direita, cima, esquerda, baixo) de uma célula
+-- Ordem fixa para comparação com as restrições
 getNeighbors :: [[Cell]] -> Int -> Int -> [Maybe Cell]
 getNeighbors grid row col =
-  let positions = [ (row, col + 1)    -- right (0)
-                  , (row - 1, col)    -- top (1)
-                  , (row, col - 1)    -- left (2)
-                  , (row + 1, col)    -- bottom (3)
+  let positions = [ (row, col + 1)    -- direita (0)
+                  , (row - 1, col)    -- cima (1)
+                  , (row, col - 1)    -- esquerda (2)
+                  , (row + 1, col)    -- baixo (3)
                   ]
   in [ getCell grid r c | (r, c) <- positions ]
 
-
--- Check if a cell's comparisons match its actual relationships with neighbors
+-- Compara as restrições da célula com os valores reais dos vizinhos
 compareCardinals :: Grid -> Int -> Int -> Bool
 compareCardinals grid row col =
     case getCell (cells grid) row col of
-        Nothing -> False  -- Cell doesn't exist
+        Nothing -> False  -- Célula não existe
         Just cell -> 
             let cellValue = getValue cell
                 (right, top, left, down) = comparisons cell
                 n = size grid
             in
-                -- Check right comparison
+                -- Verifica a comparação à direita
                 (col >= n - 1 || right == None || 
                     case getCell (cells grid) row (col + 1) of
                         Nothing -> True
@@ -113,8 +108,8 @@ compareCardinals grid row col =
                             in rightValue == 0 || 
                                (right == Greater && cellValue > rightValue) ||
                                (right == Less && cellValue < rightValue)) &&
-                
-                -- Check top comparison
+
+                -- Verifica a comparação acima
                 (row <= 0 || top == None || 
                     case getCell (cells grid) (row - 1) col of
                         Nothing -> True
@@ -123,8 +118,8 @@ compareCardinals grid row col =
                             in topValue == 0 ||
                                (top == Greater && cellValue > topValue) ||
                                (top == Less && cellValue < topValue)) &&
-                
-                -- Check left comparison
+
+                -- Verifica a comparação à esquerda
                 (col <= 0 || left == None || 
                     case getCell (cells grid) row (col - 1) of
                         Nothing -> True
@@ -133,8 +128,8 @@ compareCardinals grid row col =
                             in leftValue == 0 ||
                                (left == Greater && cellValue > leftValue) ||
                                (left == Less && cellValue < leftValue)) &&
-                
-                -- Check down comparison
+
+                -- Verifica a comparação abaixo
                 (row >= n - 1 || down == None || 
                     case getCell (cells grid) (row + 1) col of
                         Nothing -> True
@@ -143,9 +138,8 @@ compareCardinals grid row col =
                             in downValue == 0 ||
                                (down == Greater && cellValue > downValue) ||
                                (down == Less && cellValue < downValue)) &&
-                
-                -- Additional checks for neighboring cells' constraints pointing to this cell
-                -- Check if left neighbor has right comparison pointing to this cell
+
+                -- Verifica se o vizinho à esquerda impõe restrição sobre esta célula
                 (col <= 0 || 
                     case getCell (cells grid) row (col - 1) of
                         Nothing -> True
@@ -155,8 +149,8 @@ compareCardinals grid row col =
                             in leftValue == 0 || leftRight == None ||
                                (leftRight == Greater && leftValue > cellValue) ||
                                (leftRight == Less && leftValue < cellValue)) &&
-                
-                -- Check if top neighbor has down comparison pointing to this cell
+
+                -- Verifica se o vizinho acima impõe restrição sobre esta célula
                 (row <= 0 || 
                     case getCell (cells grid) (row - 1) col of
                         Nothing -> True
@@ -166,8 +160,8 @@ compareCardinals grid row col =
                             in topValue == 0 || topDown == None ||
                                (topDown == Greater && topValue > cellValue) ||
                                (topDown == Less && topValue < cellValue)) &&
-                
-                -- Check if right neighbor has left comparison pointing to this cell  
+
+                -- Verifica se o vizinho à direita impõe restrição sobre esta célula
                 (col >= n - 1 || 
                     case getCell (cells grid) row (col + 1) of
                         Nothing -> True
@@ -177,8 +171,8 @@ compareCardinals grid row col =
                             in rightValue == 0 || rightLeft == None ||
                                (rightLeft == Greater && rightValue > cellValue) ||
                                (rightLeft == Less && rightValue < cellValue)) &&
-                
-                -- Check if bottom neighbor has top comparison pointing to this cell
+
+                -- Verifica se o vizinho abaixo impõe restrição sobre esta célula
                 (row >= n - 1 || 
                     case getCell (cells grid) (row + 1) col of
                         Nothing -> True
@@ -188,16 +182,16 @@ compareCardinals grid row col =
                             in downValue == 0 || downTop == None ||
                                (downTop == Greater && downValue > cellValue) ||
                                (downTop == Less && downValue < cellValue))
-                               
--- Simplified helper function to check a single comparison with a neighbor
+
+-- Função auxiliar simplificada para verificar uma única comparação
 checkNeighbor :: Int -> Comparison -> Maybe Cell -> Bool
 checkNeighbor cellValue comp maybeNeighbor =
     case (comp, maybeNeighbor) of
-        (None, _) -> True  -- No comparison needed
-        (_, Nothing) -> True  -- No neighbor in this direction, so constraint is satisfied
+        (None, _) -> True  -- Sem comparação necessária
+        (_, Nothing) -> True  -- Sem vizinho na direção, comparação satisfeita
         (Greater, Just neighbor) -> 
             let neighborValue = getValue neighbor
-            in neighborValue == 0 || cellValue > neighborValue  -- Allow empty cells
+            in neighborValue == 0 || cellValue > neighborValue  -- Permite células vazias
         (Less, Just neighbor) -> 
             let neighborValue = getValue neighbor
-            in neighborValue == 0 || cellValue < neighborValue  -- Allow empty cells
+            in neighborValue == 0 || cellValue < neighborValue  -- Permite células vazias
