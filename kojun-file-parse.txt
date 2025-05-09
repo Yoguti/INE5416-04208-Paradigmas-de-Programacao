@@ -1,0 +1,33 @@
+Understanding the Kojun Puzzle Matrices
+
+The matrices in your data describe a Kojun puzzle, which is a logic puzzle created by Otto Janko. Let me explain how these matrices define the puzzle:
+What is a Kojun Puzzle?
+
+Kojun (also known as Ripple Effect) is a logic puzzle played on a grid divided into regions. The rules are:
+
+    Each region must contain consecutive numbers starting from 1
+    The same number cannot appear in adjacent cells (including diagonally)
+    Numbers in the same row or column must be different
+
+The Matrices in Your Data
+1. [problem] Matrix
+
+This represents the initial state of the puzzle with given numbers:
+
+    Numbers 1-7 are the initial clues
+    Dashes ("-") represent empty cells to be filled
+
+2. [areas] Matrix
+
+This defines the regions of the puzzle:
+
+    Each number represents a region ID
+    Cells with the same number belong to the same region
+    There are 63 distinct regions in this puzzle
+
+3. [solution] Matrix
+
+This contains the complete solution to the puzzle with all cells filled correctly.
+4. [moves] Matrix
+
+This records the sequence of moves to solve the puzzle, using coordinate notation.
