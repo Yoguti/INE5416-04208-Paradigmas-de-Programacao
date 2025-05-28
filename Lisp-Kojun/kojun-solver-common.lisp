@@ -254,111 +254,124 @@
 
 
 ;------------------------------------------------------------------------------;
-;; SOLVER DE QUEBRA-CABEÇA - ALGORITMO DE BACKTRACKING
-;;
-;; PSEUDOCÓDIGO:
-;; 1. Mapear coordenadas de cada região
-;; 2. Para cada posição vazia no puzzle:
-;;    - Calcular números disponíveis (sem conflitos com vizinhos e região)
-;;    - Tentar cada número disponível recursivamente
-;;    - Se falhar, fazer backtrack e tentar próximo número
-;; 3. Retorna sucesso quando todas as posições estão preenchidas
+#|  SOLVER DE QUEBRA-CABEÇA - ALGORITMO DE BACKTRACKING
+
+ 1. INICIALIZAÇÃO:
+    - Mapear todas as coordenadas de cada região do puzzle (defvar puzzle e defvar regions)
+    - Criar uma tabela hash associando cada região às suas coordenadas (ex de hash: ID 1 (região 1), lista de pares (x y) contidos na reg. 1)
+
+ 2. ALGORITMO DE BACKTRACKING (função principal 'resolver'):
+    Para cada posição (x,y) no puzzle de forma linha por linha:
+      a) Se chegou ao final de todas as linhas: SUCESSO!
+      b) Se chegou ao final da linha atual: vai para próxima linha
+      c) Se a posição já tem um número: vai para próxima posição
+      d) Se a posição está vazia (valor 0):
+         - Calcula números disponíveis para esta posição
+         - Tenta cada número disponível recursivamente:
+           * Coloca o número na posição
+           * Chama recursivamente para próxima posição
+           * Se a recursão falha: remove o número e tenta o próximo
+           * Se a recursão tem sucesso: retorna sucesso
+
+ 3. CÁLCULO DE NÚMEROS DISPONÍVEIS:
+    Para cada posição vazia, os números disponíveis são determinados por:
+    - Números já usados na mesma região (não podem ser repetidos)
+    - Números adjacentes ortogonalmente (não podem ser iguais aos vizinhos)
+    - Restrições verticais dentro da região (baseadas em vizinhos verticais)
+
+ MÉTODO: Constraint Satisfaction Problem (CSP) com Backtracking
+ - Usa propagação de restrições para calcular domínios válidos
+ - Aplica backtracking quando uma tentativa falha
+ - Verifica consistência local a cada passo
+|#
+
 
 ;; Macro: executa forms apenas se test for falso
 (defmacro a-menos-que* (teste &body formas) 
   `(if ,teste t (progn ,@formas)))
 
-;; Funções básicas de acesso
-(defun obter-matriz (matriz x y) (aref matriz y x))
+(defun obter-valor (matriz x y) (aref matriz y x))
+(defun definir-valor-puzzle (x y valor) (setf (aref puzzle y x) valor))
+(defun coordenadas-ortogonais (x y) `((,(1- x) ,y) (,(1+ x) ,y) (,x ,(1- y)) (,x ,(1+ y))))
+(defun intervalo-de (u l) (loop for x from (1- u) above l collect x))
 (defun definir-hash (chave valor dict) (setf (gethash chave dict) valor))
-(defun coords+ (x y) `((,(1- x) ,y) (,(1+ x) ,y) (,x ,(1- y)) (,x ,(1+ y))))
-(defun intervalo (u l) (loop for x from (1- u) above l collect x))
-(defun definir-puzzle (x y valor) (setf (aref puzzle y x) valor))
-(defun obter-regiao (x y) (obter-matriz regions x y))
-(defun dentro-limites (x y) (and (>= x 0) (< x puzzle-w) (>= y 0) (< y puzzle-h)))
-(defun obter-coords-regiao (x y) (gethash (obter-regiao x y) region-coords))
-(defun obter-tamanho-regiao (x y) (length (obter-coords-regiao x y)))
+(defun regiao-de (x y) (obter-valor regions x y))
+(defun dentro-dos-limites (x y) (and (>= x 0) (< x puzzle-w) (>= y 0) (< y puzzle-h)))
+(defun coordenadas-da-regiao (x y) (gethash (regiao-de x y) region-coords))
+(defun tamanho-da-regiao (x y) (length (coordenadas-da-regiao x y)))
 
-(defun obter-puzzle (coord)
+(defun valor-no-puzzle (coord)
   (let ((x (nth 0 coord)) (y (nth 1 coord)))
-    (if (dentro-limites x y) (obter-matriz puzzle x y) 0)))
+    (if (dentro-dos-limites x y) (obter-valor puzzle x y) 0)))
 
-(defun na-mesma-regiao (ax ay bx by) 
-  (and (dentro-limites ax ay) (dentro-limites bx by) 
-       (eq (obter-regiao ax ay) (obter-regiao bx by))))
+(defun mesma-regiao-p (ax ay bx by) 
+  (and (dentro-dos-limites ax ay) (dentro-dos-limites bx by) 
+       (eq (regiao-de ax ay) (regiao-de bx by))))
 
-(defun tentar-obter-vizinho-regiao (ax ay bx by fallback)
-  (if (na-mesma-regiao ax ay bx by) 
-      (obter-matriz puzzle bx by) 
+(defun tentar-vizinho-regiao (ax ay bx by fallback)
+  (if (mesma-regiao-p ax ay bx by) 
+      (obter-valor puzzle bx by) 
       fallback))
 
-;; Funções de cálculo de restrições
-(defun obter-ortogonais (x y) 
-  (map 'list #'obter-puzzle (coords+ x y)))
+(defun valores-ortogonais (x y) 
+  (map 'list #'valor-no-puzzle (coordenadas-ortogonais x y)))
 
-(defun obter-numeros-regiao (x y) 
-  (map 'list #'obter-puzzle (obter-coords-regiao x y)))
+(defun valores-da-regiao (x y) 
+  (map 'list #'valor-no-puzzle (coordenadas-da-regiao x y)))
 
-(defun obter-numeros-verticais (x y)
-  (let ((a (tentar-obter-vizinho-regiao x y x (1- y) (1+ (obter-tamanho-regiao x y))))
-        (b (tentar-obter-vizinho-regiao x y x (1+ y) 0)))
-    (intervalo a b)))
+(defun valores-verticais-validos (x y)
+  (let ((a (tentar-vizinho-regiao x y x (1- y) (1+ (tamanho-da-regiao x y))))
+        (b (tentar-vizinho-regiao x y x (1+ y) 0)))
+    (intervalo-de a b)))
 
-;; Calcula números disponíveis para uma posição
-(defun obter-numeros-disponiveis (x y)
-  (let ((ortogonais (obter-ortogonais x y))
-        (regiao (obter-numeros-regiao x y))
-        (verticais (obter-numeros-verticais x y)))
+(defun numeros-disponiveis (x y)
+  (let ((ortogonais (valores-ortogonais x y))
+        (regiao (valores-da-regiao x y))
+        (verticais (valores-verticais-validos x y)))
     (set-difference verticais (union ortogonais regiao))))
 
-;; Mapeia coordenadas por região
-(defun mapear-regioes (x y) 
+(defun mapear-coordenadas-regioes (x y) 
   (cond
     ((>= y puzzle-h) nil)
-    ((>= x puzzle-w) (mapear-regioes 0 (1+ y)))
-    (t (let ((regiao (obter-regiao x y)))
+    ((>= x puzzle-w) (mapear-coordenadas-regioes 0 (1+ y)))
+    (t (let ((regiao (regiao-de x y)))
          (if (gethash regiao region-coords)
              (push `(,x ,y) (gethash regiao region-coords))
              (definir-hash regiao `((,x ,y)) region-coords)))
-       (mapear-regioes (1+ x) y))))
+       (mapear-coordenadas-regioes (1+ x) y))))
 
-;; Tenta números em uma posição com backtracking
-(defun tentar-numeros (x y numeros)
+(defun tentar-valores-na-posicao (x y numeros)
   (when numeros
-    (definir-puzzle x y (first numeros))
-    (a-menos-que* (resolver-proximo x y)
-      (definir-puzzle x y 0)
-      (tentar-numeros x y (rest numeros)))))
+    (definir-valor-puzzle x y (first numeros))
+    (a-menos-que* (resolver-proxima-posicao x y)
+      (definir-valor-puzzle x y 0)
+      (tentar-valores-na-posicao x y (rest numeros)))))
 
-;; Continua para próxima posição
-(defun resolver-proximo (x y)
+(defun resolver-proxima-posicao (x y)
   (let ((proximo-x (if (>= (1+ x) puzzle-w) 0 (1+ x)))
         (proximo-y (if (>= (1+ x) puzzle-w) (1+ y) y)))
-    (resolver proximo-x proximo-y)))
+    (resolver-puzzle proximo-x proximo-y)))
 
-;; Função principal do solver
-(defun resolver (x y)
+(defun resolver-puzzle (x y)
   (cond
     ((>= y puzzle-h) t)
-    ((>= x puzzle-w) (resolver 0 (1+ y)))
-    (t (if (= 0 (obter-matriz puzzle x y))
-           (tentar-numeros x y (obter-numeros-disponiveis x y))
-           (resolver (1+ x) y)))))
+    ((>= x puzzle-w) (resolver-puzzle 0 (1+ y)))
+    (t (if (= 0 (obter-valor puzzle x y))
+           (tentar-valores-na-posicao x y (numeros-disponiveis x y))
+           (resolver-puzzle (1+ x) y)))))
 
-;; Imprime o puzzle
-(defun imprimir-puzzle ()
+(defun mostrar-puzzle ()
   (loop for y from 0 below puzzle-h do
     (loop for x from 0 below puzzle-w do
-      (format t "~2d " (obter-matriz puzzle x y)))
+      (format t "~2d " (obter-valor puzzle x y)))
     (format t "~%")))
 
-;; Resolve e imprime resultado
-(defun resolver-e-imprimir ()
-  (mapear-regioes 0 0)
-  (if (resolver 0 0)
+(defun resolver-e-mostrar ()
+  (mapear-coordenadas-regioes 0 0)
+  (if (resolver-puzzle 0 0)
       (progn
         (format t "Solução encontrada:~%")
-        (imprimir-puzzle))
+        (mostrar-puzzle))
       (format t "Nenhuma solução encontrada~%")))
 
-(resolver-e-imprimir)
+(resolver-e-mostrar)
