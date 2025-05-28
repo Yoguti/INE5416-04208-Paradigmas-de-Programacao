@@ -203,6 +203,8 @@
   (0 0 6 2 0 5 0 0 1 3 0 3 0 4)
 )))
 |#
+;; Problem 8
+#|
 (defvar puzzle-w 17)
 (defvar puzzle-h 17)
 
@@ -251,7 +253,49 @@
     (2 0 2 0 4 0 0 0 1 0 0 1 0 4 0 0 0)
     (1 7 6 5 0 4 1 7 2 3 1 2 3 0 2 0 0)
 )))
-
+|#
+;; Problem 8
+(defvar puzzle-w 17)
+(defvar puzzle-h 17)
+(defvar region-coords (make-hash-table))
+(defvar regions (make-array `(,puzzle-w ,puzzle-h) :initial-contents '(
+ (a a b b o o z z z aj aj as ay ay ay az az)
+ (a a b o o o aa ab z ak ak as as as as az az)
+ (c c c o p p aa ab ab al ak at at at at at az)
+ (c c c c p t aa ab ab al al au au au au at bc)
+ (d d d p p t ab ab ab al al al au au au ba bc)
+ (d d d e p p ac ac ac am am am am am am av bc)
+ (d f e e e u u u u an aq aq aw aw av av bc)
+ (f f f g g g g u ar ar aq ao aw bb bb bb bc)
+ (f f f h g g ad ad as ao ao ao ao bb bd bb bc)
+ (i i h h h h ad ad as as as as at bb bb be be)
+ (j j i i s s s af af af ay at at at aw be be)
+ (k j j i s s s af ap ay ay ay at aw aw be be)
+ (k k i i r v v af ap ay ay aw aw aw bh bh be)
+ (k k l l r v w w w aq ax aw bg bg bh bh bh)
+ (m n n n r w w w x aq ax bi bg bg bg bg bh)
+ (m n m r r x x x x x ax ax ax bg bj bj bk)
+ (m m m r r y y y y x ax ax bk bk bk bk bk)
+)))
+(defvar puzzle (make-array `(,puzzle-w ,puzzle-h) :initial-contents '(
+ (0 3 5 6 0 0 1 2 0 2 0 3 0 4 0 0 4)
+ (2 0 0 2 0 4 0 0 0 0 0 0 0 0 1 0 0)
+ (7 6 5 0 7 0 0 4 0 0 3 0 0 0 6 5 2)
+ (3 0 1 0 5 0 0 0 0 2 0 1 0 0 0 2 0)
+ (0 7 0 2 0 0 3 0 0 0 5 0 0 0 5 0 0)
+ (2 0 5 0 0 0 0 0 0 0 5 4 0 0 0 6 0)
+ (0 1 0 0 3 1 0 0 0 5 0 0 0 0 1 3 0)
+ (0 4 2 0 0 0 6 0 0 0 0 0 0 0 3 0 5)
+ (0 3 0 6 2 0 3 0 0 4 0 5 0 0 2 0 4)
+ (0 0 0 0 0 3 5 0 0 1 0 0 5 4 0 7 0)
+ (7 3 0 5 0 6 0 2 0 4 0 3 0 0 0 0 0)
+ (6 0 0 0 2 0 0 0 0 0 0 0 5 2 0 1 0)
+ (4 0 4 0 0 0 0 0 0 0 0 1 0 7 0 3 4)
+ (0 1 3 0 0 6 0 0 6 4 0 0 5 0 6 2 0)
+ (0 6 0 0 1 0 2 0 0 7 0 4 0 0 4 0 0)
+ (0 0 3 0 4 0 6 5 0 4 0 0 7 0 1 0 0)
+ (3 0 2 0 0 2 0 4 0 1 2 0 5 4 5 0 2)
+)))
 
 ;------------------------------------------------------------------------------;
 #|  SOLVER DE QUEBRA-CABEÇA - ALGORITMO DE BACKTRACKING
@@ -279,58 +323,116 @@
     - Números adjacentes ortogonalmente (não podem ser iguais aos vizinhos)
     - Restrições verticais dentro da região (baseadas em vizinhos verticais)
 
- MÉTODO: Constraint Satisfaction Problem (CSP) com Backtracking
- - Usa propagação de restrições para calcular domínios válidos
- - Aplica backtracking quando uma tentativa falha
- - Verifica consistência local a cada passo
 |#
 
+;; Macro: retorna t se TESTE não for nil nem false; caso contrário, executa FORMAS
+(defmacro a-nao-ser-que (teste &body formas)
+  "Retorna t se TESTE for verdadeiro; se não, executa FORMAS em sequência e retorna seu resultado."
+  `(or ,teste
+       (progn ,@formas)))
 
-;; Macro: executa forms apenas se test for falso
-(defmacro a-menos-que* (teste &body formas) 
-  `(if ,teste t (progn ,@formas)))
+;; Obtém o valor na posição (x, y) da matriz (coluna x, linha y)
+(defun obter-valor (matriz x y)
+  "Retorna o elemento na coluna X e linha Y da MATRIZ."
+  (aref matriz y x))
 
-(defun obter-valor (matriz x y) (aref matriz y x))
-(defun definir-valor-puzzle (x y valor) (setf (aref puzzle y x) valor))
-(defun coordenadas-ortogonais (x y) `((,(1- x) ,y) (,(1+ x) ,y) (,x ,(1- y)) (,x ,(1+ y))))
-(defun intervalo-de (u l) (loop for x from (1- u) above l collect x))
-(defun definir-hash (chave valor dict) (setf (gethash chave dict) valor))
-(defun regiao-de (x y) (obter-valor regions x y))
-(defun dentro-dos-limites (x y) (and (>= x 0) (< x puzzle-w) (>= y 0) (< y puzzle-h)))
-(defun coordenadas-da-regiao (x y) (gethash (regiao-de x y) region-coords))
-(defun tamanho-da-regiao (x y) (length (coordenadas-da-regiao x y)))
+;; Define o valor no puzzle global na posição (x, y)
+(defun definir-valor-puzzle (x y valor)
+  "Atribui VALOR à posição (X, Y) no puzzle global."
+  (setf (aref puzzle y x) valor))
 
+;; Retorna as quatro coordenadas ortogonais (esquerda, direita, cima, baixo)
+(defun coordenadas-ortogonais (x y)
+  "Gera uma lista de coordenadas ortogonais adjacentes a (X, Y)."
+  `((,(1- x) ,y)
+    (,(1+ x) ,y)
+    (,x ,(1- y))
+    (,x ,(1+ y))))
+
+;; Cria uma lista de valores de U-1 até L+1 (intervalo exclusivo inferior e superior)
+(defun intervalo-de (u l)
+  "Gera uma lista de inteiros de (U-1) até (L+1) acima de L."
+  (loop for x from (1- u) above l collect x))
+
+;; Define um par chave-valor em um hash table
+(defun definir-hash (chave valor dict)
+  "Armazena VALOR sob CHAVE no hash table DICT."
+  (setf (gethash chave dict) valor))
+
+;; Obtém a região associada à posição (x, y)
+(defun regiao-de (x y)
+  "Retorna o identificador de região para a posição (X, Y)."
+  (obter-valor regions x y))
+
+;; Verifica se (x, y) está dentro dos limites do puzzle
+(defun dentro-dos-limites (x y)
+  "Devolve t se (X, Y) está entre 0 e (puzzle-w - 1)/(puzzle-h - 1)."
+  (and (>= x 0)
+       (< x puzzle-w)
+       (>= y 0)
+       (< y puzzle-h)))
+
+;; Recupera todas as coordenadas pertencentes à mesma região de (x, y)
+(defun coordenadas-da-regiao (x y)
+  "Obtém da tabela region-coords a lista de coordenadas da região de (X, Y)."
+  (gethash (regiao-de x y) region-coords))
+
+;; Calcula o número de células na região de (x, y)
+(defun tamanho-da-regiao (x y)
+  "Retorna o número de posições na região de (X, Y)."
+  (length (coordenadas-da-regiao x y)))
+
+;; Retorna o valor no puzzle para uma coordenada, ou 0 se fora dos limites
 (defun valor-no-puzzle (coord)
-  (let ((x (nth 0 coord)) (y (nth 1 coord)))
-    (if (dentro-dos-limites x y) (obter-valor puzzle x y) 0)))
+  "Para COORD (lista (X Y)), retorna o valor do puzzle ou 0 fora dos limites."
+  (let ((x (nth 0 coord))
+        (y (nth 1 coord)))
+    (if (dentro-dos-limites x y)
+        (obter-valor puzzle x y)
+        0)))
 
-(defun mesma-regiao-p (ax ay bx by) 
-  (and (dentro-dos-limites ax ay) (dentro-dos-limites bx by) 
+;; Verifica se duas posições estão na mesma região
+(defun mesma-regiao-p (ax ay bx by)
+  "Devolve t se (AX, AY) e (BX, BY) estão dentro dos limites e na mesma região."
+  (and (dentro-dos-limites ax ay)
+       (dentro-dos-limites bx by)
        (eq (regiao-de ax ay) (regiao-de bx by))))
 
+;; Tenta retornar o valor do vizinho na mesma região ou fallback se não for
 (defun tentar-vizinho-regiao (ax ay bx by fallback)
-  (if (mesma-regiao-p ax ay bx by) 
-      (obter-valor puzzle bx by) 
+  "Se (BX, BY) estiver na mesma região de (AX, AY), retorna valor; senão, FALLBACK."
+  (if (mesma-regiao-p ax ay bx by)
+      (obter-valor puzzle bx by)
       fallback))
 
-(defun valores-ortogonais (x y) 
+;; Retorna lista de valores ortogonais adjacentes
+(defun valores-ortogonais (x y)
+  "Mapeia valores dos vizinhos ortogonais de (X, Y)."
   (map 'list #'valor-no-puzzle (coordenadas-ortogonais x y)))
 
-(defun valores-da-regiao (x y) 
+;; Retorna lista de valores nas coordenadas da mesma região
+(defun valores-da-regiao (x y)
+  "Mapeia valores do puzzle para todas as posições da região de (X, Y)."
   (map 'list #'valor-no-puzzle (coordenadas-da-regiao x y)))
 
+;; Calcula intervalo válido de valores verticais para (x, y)
 (defun valores-verticais-validos (x y)
+  "Determina limites A/B entre vizinho superior e inferior na região, e gera intervalo."
   (let ((a (tentar-vizinho-regiao x y x (1- y) (1+ (tamanho-da-regiao x y))))
         (b (tentar-vizinho-regiao x y x (1+ y) 0)))
     (intervalo-de a b)))
 
+;; Computa conjunto de números ainda disponíveis na posição (x, y)
 (defun numeros-disponiveis (x y)
+  "Retorna diferença entre valores verticais válidos e já usados em ortogonais/região."
   (let ((ortogonais (valores-ortogonais x y))
         (regiao (valores-da-regiao x y))
         (verticais (valores-verticais-validos x y)))
     (set-difference verticais (union ortogonais regiao))))
 
-(defun mapear-coordenadas-regioes (x y) 
+;; Preenche tabela region-coords com coordenadas de cada região
+(defun mapear-coordenadas-regioes (x y)
+  "Popula HASH TABLE region-coords com listas de coordenadas por região."
   (cond
     ((>= y puzzle-h) nil)
     ((>= x puzzle-w) (mapear-coordenadas-regioes 0 (1+ y)))
@@ -340,33 +442,43 @@
              (definir-hash regiao `((,x ,y)) region-coords)))
        (mapear-coordenadas-regioes (1+ x) y))))
 
+;; Tenta cada número disponível, backtracking recursivo em caso de falha
 (defun tentar-valores-na-posicao (x y numeros)
+  "Escolhe FIRST de NUMEROS, testa recursão e faz backtrack se falhar."
   (when numeros
     (definir-valor-puzzle x y (first numeros))
-    (a-menos-que* (resolver-proxima-posicao x y)
+    (a-nao-ser-que (resolver-proxima-posicao x y)
       (definir-valor-puzzle x y 0)
       (tentar-valores-na-posicao x y (rest numeros)))))
 
+;; Calcula próxima posição (avança coluna e linha) e chama resolver-puzzle
 (defun resolver-proxima-posicao (x y)
+  "Define (proximo-x, proximo-y) e invoca RESOLVER-PUZZLE."
   (let ((proximo-x (if (>= (1+ x) puzzle-w) 0 (1+ x)))
         (proximo-y (if (>= (1+ x) puzzle-w) (1+ y) y)))
     (resolver-puzzle proximo-x proximo-y)))
 
+;; Função principal: percorre o puzzle e tenta preencher zeros
 (defun resolver-puzzle (x y)
+  "Resolve o puzzle recursivamente por linhas e colunas, retornando t se concluir."
   (cond
-    ((>= y puzzle-h) t)
-    ((>= x puzzle-w) (resolver-puzzle 0 (1+ y)))
-    (t (if (= 0 (obter-valor puzzle x y))
+    ((>= y puzzle-h) t)                          ; saiu do grid => sucesso
+    ((>= x puzzle-w) (resolver-puzzle 0 (1+ y))) ; fim da linha => próxima linha
+    (t (if (= 0 (obter-valor puzzle x y))        ; posição vazia?
            (tentar-valores-na-posicao x y (numeros-disponiveis x y))
-           (resolver-puzzle (1+ x) y)))))
+           (resolver-puzzle (1+ x) y)))))       ; já preenchido => próxima coluna
 
+;; Imprime o puzzle formatado
 (defun mostrar-puzzle ()
+  "Exibe o estado atual do puzzle no *standard-output*."
   (loop for y from 0 below puzzle-h do
     (loop for x from 0 below puzzle-w do
       (format t "~2d " (obter-valor puzzle x y)))
     (format t "~%")))
 
+;; Inicializa mapeamento, resolve e mostra solução ou mensagem de falha
 (defun resolver-e-mostrar ()
+  "Mapeia regiões, tenta resolver e exibe resultado ou alerta de insucesso."
   (mapear-coordenadas-regioes 0 0)
   (if (resolver-puzzle 0 0)
       (progn
@@ -374,4 +486,5 @@
         (mostrar-puzzle))
       (format t "Nenhuma solução encontrada~%")))
 
+;; Executa diretamente a rotina completa
 (resolver-e-mostrar)
