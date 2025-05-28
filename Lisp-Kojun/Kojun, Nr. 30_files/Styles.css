@@ -1,0 +1,453 @@
+@import "Styles1.css";
+
+/* ******************************** */
+/* Section specific styles          */
+/* ******************************** */
+
+@media print {
+header,
+.head1, .head2, /* veraltet */
+.header1, .header2,
+nav, .navi, #applet { display: none; }}
+
+@media screen {
+#image, .sol, .hint { display: none; }}
+
+/* ******************************** */
+/* Regelgrafiken                    */
+/* ******************************** */
+
+@media only screen and (max-width: 300px)
+{
+.regeln-1  img,
+.regeln-2  img {width: 120px; height: 120px;}
+.regeln-3  img {width:  80px; height:  80px;}
+
+.galerie-1 img,
+.galerie-2 img {width: 120px; height: 120px;}
+.galerie-3 img {width:  80px; height:  80px;}
+}
+
+@media only screen and (min-width: 301px) and (max-width: 350px)
+{
+.regeln-1  img,
+.regeln-2  img {width: 130px; height: 130px;}
+.regeln-3  img {width:  90px; height:  90px;}
+
+.galerie-1 img,
+.galerie-2 img {width: 130px; height: 130px;}
+.galerie-3 img {width:  80px; height:  80px;}
+}
+
+@media only screen and (min-width: 351px) and (max-width: 400px)
+{
+.regeln-1  img,
+.regeln-2  img {width: 150px; height: 150px;}
+.regeln-3  img {width: 100px; height: 100px;}
+
+.galerie-1 img,
+.galerie-2 img {width: 140px; height: 140px;}
+.galerie-3 img {width: 100px; height: 100px;}
+}
+
+@media only screen and (min-width: 401px) and (max-width: 450px)
+{
+.regeln-1  img,
+.regeln-2  img {width: 170px; height: 170px;}
+.regeln-3  img {width: 115px; height: 115px;}
+
+.galerie-1 img,
+.galerie-2 img {width: 150px; height: 150px;}
+.galerie-3 img {width: 115px; height: 115px;}
+}
+
+@media only screen and (min-width: 451px) and (max-width: 500px)
+{
+.regeln-1  img,
+.regeln-2  img {width: 190px; height: 190px;}
+.regeln-3  img {width: 130px; height: 130px;}
+
+.galerie-1 img,
+.galerie-2 img {width: 160px; height: 160px;}
+.galerie-3 img {width: 130px; height: 130px;}
+}
+
+@media only screen and (min-width: 501px) and (max-width: 550px)
+{
+.regeln-1  img,
+.regeln-2  img {width: 210px; height: 210px;}
+.regeln-3  img {width: 130px; height: 130px;}
+
+.galerie-1 img,
+.galerie-2 img {width: 160px; height: 160px;}
+.galerie-3 img {width: 130px; height: 130px;}
+}
+
+@media only screen and (min-width: 551px)
+{
+.regeln-1  img,
+.regeln-2  img {width: 210px; height: 210px;}
+.regeln-3  img {width: 130px; height: 130px;}
+
+.galerie-1 img,
+.galerie-2 img {width: 160px; height: 160px;}
+.galerie-3 img {width: 130px; height: 130px;}
+}
+
+.figurelist figure {
+position:relative;
+margin:0;
+padding-left:0;
+padding-right:15px;
+display:inline-block
+}
+
+.figurelist figcaption {
+padding-top:5px;
+padding-bottom:5px;
+text-align:center
+}
+
+/* ******************************** */
+/* Raetselautoren                   */
+/* ******************************** */
+
+.author-image,.genre-image {
+float:left;
+margin-right:1em
+}
+
+body.app .author-image {
+float:right;
+margin-left:1em
+}
+
+/* ******************************** */
+/* Gedichte                         */
+/* ******************************** */
+
+.poem p,
+.poem div
+{
+  padding-left: 1em;
+  text-indent: -1em;
+  margin-top:   0px;
+  padding-top:  0px;
+}
+
+/* title of a riddle */
+
+H5         { font-weight: normal; font-variant: small-caps; font-size: 120%; }
+xH5:before { content:"Ã‚Â»" }
+xH5:after  { content:"Ã‚Â«" }
+
+/* reference-link to solution */
+
+.solref {
+color:#c33;
+font-weight:700;
+font-size:90%;
+position:relative;
+padding-right:3px;
+padding-left:2px;
+letter-spacing:-1px
+}
+
+/* reference-link to solution NEUE ALTERNATIVE */
+.sr
+{
+  margin-left: 0.3em;
+  margin-right: 0.3em;
+  top: -0.15em;
+  position: relative;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  line-height: 120%;
+  font-size: 80%;
+  font-weight: 500;
+  color: #fff;
+  background-color: #996633;
+  display: inline-block;
+  border-radius: .225em;
+  text-decoration: none!important;
+}
+
+/* question */
+
+.ask
+{
+  color: rgb(155,0,0);
+  font-style: italic;
+}
+
+/* table of riddles on an author's page */
+
+table.striped tr:nth-child(even),
+table.gtab tr:nth-child(even)
+{
+  background-color: rgb(230,220,190);
+}
+
+table.gtab th:nth-child(1), table.gtab td:nth-child(1),
+table.gtab th:nth-child(3), table.gtab td:nth-child(3),
+table.gtab th:nth-child(4), table.gtab td:nth-child(4),
+table.gtab th:nth-child(5), table.gtab td:nth-child(5),
+table.gtab th:nth-child(6), table.gtab td:nth-child(6),
+table.gtab th:nth-child(7), table.gtab td:nth-child(7)
+{
+  text-align: right;
+}
+
+/* this works in browsers, but not in frontpage
+
+table.gtab th,
+table.gtab td
+{
+  text-align:right
+}
+
+table.gtab th:nth-child(2),
+table.gtab td:nth-child(2)
+{
+  text-align:left
+}
+*/
+
+div.buch
+{
+  margin-top: 0pt;
+  margin-bottom: 0pt;
+  padding-bottom: 8px;
+  min-height: 160px;
+}
+div.buch .review { font-style: italic; }
+div.buch h4 { padding-top: 4pt; }
+div.buch table tr td { padding-left: 0px; padding-top: 0pt; }
+
+div.baut
+{
+ font-weight: bold;
+ color: rgb(102,51,0);
+}
+
+div.baut img,
+div.buch img
+{
+ float: left;
+ text-align: left;
+ padding-left: 4pt;
+ margin-right: 15px;
+ margin-bottom: 10px;
+}
+
+div.buch img
+{
+ margin-top: 6pt;
+}
+
+body.apps div.buch img,
+body.apps div.baut img
+{
+ width: 60px;
+}
+
+/* ******************************** */
+/* Copyright tables                 */
+/* ******************************** */
+
+.copyright table th:nth-child(2),
+.copyright table td:nth-child(2)
+{
+  white-space: nowrap;
+}
+
+/* ******************************** */
+/* Navigation                       */
+/* ******************************** */
+
+#prev1::before {content: "◄ "}
+#next1::after {content: " ►"}
+
+/* ******************************** */
+/* Tabs                             */
+/* ******************************** */
+
+/* TODO why this? */
+/* menu { margin: 0; padding: 0; }
+
+/* TODO why this? */
+/* body.apps #index-0-tab { display: block; } */
+
+.tabs
+{
+  padding-bottom: 3pt;
+  padding-right: 1em;
+  border-bottom: 1px solid rgb(190,170,150);
+}
+
+.tab-a
+{
+  outline: none;
+  font-Weight: bold;
+  padding: 1px 5px 5px 5px;
+  border-top: 1px solid rgb(190,170,150);
+  border-left: 1px solid rgb(190,170,150);
+  border-right: 1px solid rgb(190,170,150);
+  border-radius: 3px 3px 0px 0px;
+  background-color: rgb(240,230,210);
+}
+
+.tab-i
+{
+  padding: 1px 5px 3px 5px;
+  border-top: 1px solid rgb(190,170,150);
+  border-left: 1px solid rgb(190,170,150);
+  border-right: 1px solid rgb(190,170,150);
+  border-radius: 3px 3px 0px 0px;
+}
+
+.tab-c
+{
+  margin-top: 4px;
+  padding-top: 1em;
+}
+
+/* ******************************** */
+/* Color schema                     */
+/* ******************************** */
+
+BODY
+{
+  background-color: rgb(240,230,210);
+}
+
+@media print {
+BODY
+{
+  background-color: rgb(255,255,255);
+  margin-left: 0; margin-right: 0;
+  font-size: 75%;
+}}
+
+A         { text-decoration: none; }
+A:link    { color: rgb(  0,0,153); }
+A:visited { color: rgb(153,0,153); }
+A:hover   { color: rgb(222,0,  0);
+            background-color: rgb(255,255,255); }
+
+@media print {
+A, A:link, A:visited, A:hover
+{
+  color: rgb(0,0,0);
+  text-decoration: none;
+}}
+
+INPUT:focus
+{
+  border-color: rgb(255,0,0);
+  background-color: rgb(255,255,255);
+}
+
+h1, h2, h3, .h1, .h2, .h3, .title, .abstract
+{
+  color: rgb(102,51,0);
+}
+
+.head   { color: rgb(102,102,102); }
+.ins    { color: rgb(255,0,0); }
+.del    { color: rgb(0,0,255); }
+.zitat  { border-color: rgb(153,153, 153); }
+.note   { border-color: rgb(153,0,51); }
+.sv     { background-color: rgb(255,255,180); }
+
+.navi, .boxed, .copyright, .copyright1, DIV.impressum
+{
+  border-color: rgb(190,170,150);
+}
+
+.navi, .boxed, .key, #navbar, .buch,
+TABLE.shaded TD, TD.shaded,
+TABLE.scores TD, TD.scores,
+DIV.impressum
+{
+  background-color: rgb(230,215,195);
+}
+
+TABLE.striped TH,
+TABLE.shaded TH, TH.shaded,
+TABLE.scores TH, TH.scores,
+HR
+{
+  background-color: rgb(210,190,170);
+}
+
+TABLE.shaded, TABLE.shaded TH, TABLE.shaded TD,
+TABLE.scores, TABLE.scores TH, TABLE.scores TD
+{
+  border-color: rgb(250,240,230);
+}
+
+TABLE.framed, TABLE.framed TH, TABLE.framed TD
+{
+  border-color: rgb(190,170,150);
+}
+
+/* ******************************** */
+/* Buttons                          */
+/* ******************************** */
+
+.button
+{
+  color: rgb(0,0,0);
+  background-Color: rgb(220,210,180);
+  border-left-Color: rgb(240,240,240);
+  border-top-Color: rgb(240,240,240);
+  border-right-Color: rgb(170,150,130);
+  border-bottom-Color: rgb(170,150,130);
+}
+
+.button:hover
+{
+  background-Color: rgb(220,210,180);
+  border-left-Color: rgb(170,150,130);
+  border-top-Color: rgb(170,150,130);
+  border-right-Color: rgb(255,255,255);
+  border-bottom-Color: rgb(255,255,255);
+}
+
+.button:visited, A.button:link, A.button:active
+{
+  color: rgb(0,0,0);
+}
+
+/* ******************************** */
+/* Navigation                       */
+/* ******************************** */
+
+.navi
+{
+  text-align: right;
+  line-height: 1.6em;
+  padding: 0.4em 0.4em 0.4em 0.4em;
+  margin:  0.0em 0.0em 0.0em 0.0em;
+  border-color: rgb(240,230,210);
+  background-color: rgb(240,230,210);
+  background-image: linear-gradient(to bottom, rgb(240,230,210) 0%, rgb(190,170,150) 45%, rgb(190,170,150) 55%, rgb(240,230,210) 100%);
+}
+
+.navi a
+{
+  background-color: rgb(247,247,247);
+  background-image: linear-gradient(rgba(255,255,255,.4),rgba(127,127,127,.2));
+  border: 1px solid;
+  border-radius: 0.6em;
+  border-color: #DDD #AAA #888 #CCC;
+  padding: 0.1em 0.4em 0.1em 0.4em;
+  text-shadow: 0 1px rgba(255,255,255,0.5);
+  white-space: nowrap;
+  font-size: 90%;
+}
+
+/* ******************************** */
+/* THE END                          */
+/* ******************************** */
